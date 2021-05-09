@@ -1,41 +1,43 @@
-package JPokerGame;
+package JPokerGame.Dialog;
 
 import Common.JPokerInterface;
-
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import JPokerGame.JPokerClient;
 
 import javax.swing.*;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
-public class RegisterDialog extends JDialog implements ActionListener {
+public class LoginDialog extends JDialog implements ActionListener {
 
 	private final JLabel loginLabel = new JLabel("Login Name");
 	private final JLabel passwordLabel = new JLabel("Password");
-	private final JLabel confirmPasswordLabel = new JLabel("Confirm Password");
 
 	private final JTextField loginField = new JTextField(30);
-	private final JTextField passwordField = new JTextField(30);
-	private final JTextField confirmPasswordField = new JTextField(30);
+	private final JPasswordField passwordField = new JPasswordField();
 
+	private final JButton loginButton = new JButton("Login");
 	private final JButton registerButton = new JButton("Register");
-	private final JButton cancelButton = new JButton("Cancel");
 
-	private final TitledBorder loginPanelBorder = new TitledBorder(new LineBorder(Color.GREEN), "Register");
+	private final TitledBorder loginPanelBorder = new TitledBorder(new LineBorder(Color.GREEN), "Login");
 	private final EmptyBorder emptyBorder = new EmptyBorder(20, 20, 20, 20);
+
+	private final RegisterDialog registerDialog;
 
 	private final JPokerInterface gameProvider;
 
-	public RegisterDialog(final JFrame parent, boolean modal, JPokerInterface gameProvider) {
+	public LoginDialog(final JFrame parent, boolean modal, RegisterDialog registerDialog,
+			JPokerInterface gameProvider) {
 		super(parent, modal);
 
+		this.registerDialog = registerDialog;
 		this.gameProvider = gameProvider;
 
-		setTitle("Register");
+		setTitle("Login");
 		setBackground(new Color(220, 220, 220));
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		add(getMainPanel());
@@ -43,14 +45,14 @@ public class RegisterDialog extends JDialog implements ActionListener {
 	}
 
 	private JComponent getLoginPanel() {
-		cancelButton.addActionListener(this);
+		loginButton.addActionListener(this);
 		registerButton.addActionListener(this);
 
 		JPanel loginPanel = new JPanel();
 		loginPanel.setLayout(new BoxLayout(loginPanel, BoxLayout.LINE_AXIS));
-		loginPanel.add(registerButton);
+		loginPanel.add(loginButton);
 		loginPanel.add(Box.createHorizontalGlue());
-		loginPanel.add(cancelButton);
+		loginPanel.add(registerButton);
 		loginPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
 		return loginPanel;
@@ -70,28 +72,30 @@ public class RegisterDialog extends JDialog implements ActionListener {
 		mainPanel.setBorder(new CompoundBorder(new CompoundBorder(emptyBorder, loginPanelBorder), emptyBorder));
 		mainPanel.add(wrapLabelField(loginLabel, loginField));
 		mainPanel.add(wrapLabelField(passwordLabel, passwordField));
-		mainPanel.add(wrapLabelField(confirmPasswordLabel, confirmPasswordField));
 		mainPanel.add(getLoginPanel());
 
-		mainPanel.setPreferredSize(new Dimension(400, 400));
+		mainPanel.setPreferredSize(new Dimension(400, 300));
 
 		return mainPanel;
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		if (e.getSource() == registerButton) {
+		if (e.getSource() == loginButton) {
 			if (loginField.getText().equals("")) {
 				JOptionPane.showMessageDialog(null, "Login name should not be empty", "Error",
 						JOptionPane.ERROR_MESSAGE);
-			} else if (!passwordField.getText().equals(confirmPasswordField.getText())) {
-				JOptionPane.showMessageDialog(null, "Passwords do not match", "Information",
-						JOptionPane.INFORMATION_MESSAGE);
 			} else {
 				new Thread(() -> {
 					try {
-						if (gameProvider.register(loginField.getText(), passwordField.getText())) {
+						// Using deprecated method for simplicity
+						if (gameProvider.login(loginField.getText(), passwordField.getText())) {
 							setVisible(false);
+							((JPokerClient) getOwner()).setUsername(loginField.getText());
+							getParent().setVisible(true);
+						} else {
+							JOptionPane.showMessageDialog(null, "Incorrect Password", "Information",
+									JOptionPane.INFORMATION_MESSAGE);
 						}
 					} catch (Exception e1) {
 						JOptionPane.showMessageDialog(null, e1.getCause(), "Information",
@@ -101,12 +105,9 @@ public class RegisterDialog extends JDialog implements ActionListener {
 				}).start();
 			}
 		}
-
-		if (e.getSource() == cancelButton) {
-			loginField.setText("");
-			passwordField.setText("");
-			confirmPasswordField.setText("");
-			setVisible(false);
+		if (e.getSource() == registerButton) {
+			registerDialog.setVisible(true);
+			registerDialog.requestFocus();
 		}
 	}
 

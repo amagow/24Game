@@ -1,6 +1,8 @@
 package JPokerGame;
 
 import Common.JPokerInterface;
+import JPokerGame.Dialog.LoginDialog;
+import JPokerGame.Dialog.RegisterDialog;
 
 import java.awt.BorderLayout;
 import java.rmi.Naming;
