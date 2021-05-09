@@ -1,7 +1,10 @@
 package JPoker24GameServer;
 
-import Common.JPokerInterface;
+import Common.*;
+import Common.Messages.JMSMessage;
+import jakarta.jms.JMSException;
 
+import javax.naming.NamingException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -16,11 +19,19 @@ import java.sql.*;
 import java.util.ArrayList;
 
 public class JPokerServer extends UnicastRemoteObject implements JPokerInterface {
-//    private static final String userInfoPath = "UserInfo.txt";
+    //    private static final String userInfoPath = "UserInfo.txt";
     private static final String onlineUserPath = "OnlineUser.txt";
     private final Connection conn;
 
-    protected JPokerServer() throws RemoteException, SQLException {
+    private final JMSHelperServer jmsHelper = new JMSHelperServer();
+    private final ReadMessage messageReader = new ReadMessage();
+
+    private final JPokerRoomManager roomManager = new JPokerRoomManager();
+
+    private final ArrayList<JPokerUser> players = new ArrayList<>();
+
+    protected JPokerServer() throws RemoteException, SQLException, NamingException, JMSException {
+
         super();
         String DB_USER = "c3358";
         String DB_PASS = "c3358PASS";
@@ -35,9 +46,8 @@ public class JPokerServer extends UnicastRemoteObject implements JPokerInterface
             JPokerServer server = new JPokerServer();
             System.setSecurityManager(new SecurityManager());
             Naming.rebind("Server.JPokerServer", server);
-
             setupOnlineUser();
-
+            new Thread(server.messageReader).start();
         } catch (Exception e) {
             System.err.println("Remote Exception thrown: " + e);
             e.printStackTrace();
@@ -62,7 +72,7 @@ public class JPokerServer extends UnicastRemoteObject implements JPokerInterface
     }
 
     public ArrayList<String> readOnlineUser() {
-        ArrayList<String> onlineUsers;
+        ArrayList<String> onlineUsers = null;
         synchronized (onlineUserPath) {
             try (ObjectInputStream onlineUserReader = new ObjectInputStream(new FileInputStream(onlineUserPath))) {
                 {
@@ -70,7 +80,7 @@ public class JPokerServer extends UnicastRemoteObject implements JPokerInterface
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                throw new Error(e);
+//                throw new Error(e);
             }
         }
 
@@ -176,6 +186,59 @@ public class JPokerServer extends UnicastRemoteObject implements JPokerInterface
         }
         return true;
     }
+
+
+    class CheckPlayer implements Runnable {
+        public JPokerUserTransferObject user;
+
+        public CheckPlayer(JPokerUserTransferObject user) {
+            this.user = user;
+        }
+
+        @Override
+        public void run() {
+
+            if (roomManager.isUserPlaying(user.getName())) {
+                System.err.println("user " + user.getName()
+                        + " is already playing Reject join message.");
+                return;
+            }
+
+            PreparedStatement stmt;
+            try {
+                stmt = conn
+                        .prepareStatement("SELECT * from user WHERE  userinfo.userName = ?");
+                stmt.setString(1, user.getName());
+                ResultSet rs = stmt.executeQuery();
+                if (rs.next()) {
+                    String name = rs.getString(1);
+                    String password = rs.getString(2);
+                    Integer gamesPlayed = rs.getInt(3);
+                    Integer wins = rs.getInt(4);
+                    // TODO: change the average win time and rank
+                    JPokerUser user = new JPokerUser(name,password, gamesPlayed,  wins, 0, 0.0);
+                    roomManager.allocateRoom(user);
+                }
+            } catch (SQLException e1) {
+                e1.printStackTrace();
+            }
+        }
+    }
+
+    private class ReadMessage implements Runnable {
+        @Override
+        public void run() {
+            while (true) {
+                try {
+                    JMSMessage message = jmsHelper.receiveMessage(jmsHelper.queueReader);
+                    new Thread(new CheckPlayer(message.getUser())).start();
+                } catch (JMSException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
 //	Use this login function when not working with a database
 //	@Override
 //	public boolean register(String name, String password) throws RemoteException {
