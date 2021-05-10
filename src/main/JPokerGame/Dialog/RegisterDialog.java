@@ -33,6 +33,7 @@ public class RegisterDialog extends JDialog implements ActionListener {
 
     public RegisterDialog(final JFrame parent, boolean modal, JPokerInterface gameProvider) {
         super(parent, modal);
+
         this.gameProvider = gameProvider;
 
         setTitle("Register");
@@ -88,7 +89,7 @@ public class RegisterDialog extends JDialog implements ActionListener {
                 JOptionPane.showMessageDialog(null, "Passwords do not match", "Information",
                         JOptionPane.INFORMATION_MESSAGE);
             } else {
-                RegisterWorker worker = new RegisterWorker();
+                RegisterWorker worker = new RegisterWorker(this);
                 worker.execute();
             }
         }
@@ -102,22 +103,32 @@ public class RegisterDialog extends JDialog implements ActionListener {
     }
 
     private class RegisterWorker extends SwingWorker<Boolean, Void> {
+        private final JDialog dialog;
+        private Throwable exceptionCause = null;
+
+        public RegisterWorker(JDialog dialog) {
+            this.dialog = dialog;
+        }
+
         @Override
         protected Boolean doInBackground() {
             try {
                 return gameProvider.register(loginField.getText(), passwordField.getText());
 
             } catch (Exception e1) {
-                JOptionPane.showMessageDialog(null, e1.getCause(), "Information",
-                        JOptionPane.INFORMATION_MESSAGE);
                 e1.printStackTrace();
+                exceptionCause = e1.getCause();
             }
             return false;
         }
 
         @Override
         protected void done() {
-            setVisible(false);
+            if (exceptionCause != null)
+                JOptionPane.showMessageDialog(null, exceptionCause, "Information",
+                        JOptionPane.INFORMATION_MESSAGE);
+            else
+                dialog.setVisible(false);
         }
     }
 

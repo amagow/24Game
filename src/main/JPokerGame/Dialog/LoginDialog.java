@@ -103,6 +103,7 @@ public class LoginDialog extends JDialog implements ActionListener {
 
     private class LoginWorker extends SwingWorker<JPokerUserTransferObject, Void> {
         private final JDialog dialog;
+        private Throwable exceptionCause = null;
 
         public LoginWorker(JDialog dialog) {
             this.dialog = dialog;
@@ -120,16 +121,18 @@ public class LoginDialog extends JDialog implements ActionListener {
                 }
             } catch (Exception e1) {
                 e1.printStackTrace();
-                JOptionPane.showMessageDialog(null, e1.getCause(), "Information",
-                        JOptionPane.INFORMATION_MESSAGE);
-                e1.printStackTrace();
+                exceptionCause = e1.getCause();
             }
             return null;
         }
 
         @Override
         protected void done() {
-            this.dialog.setVisible(false);
+            if (exceptionCause != null)
+                JOptionPane.showMessageDialog(null, exceptionCause, "Information",
+                        JOptionPane.INFORMATION_MESSAGE);
+            else
+                this.dialog.setVisible(false);
         }
     }
 }
