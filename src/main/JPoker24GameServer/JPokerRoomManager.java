@@ -28,12 +28,20 @@ public class JPokerRoomManager {
             }
         }
 
-        System.out.println("Room allocated");
         JPokerRoom room = new JPokerRoom();
         room.addPlayer(user);
         synchronized (rooms) {
             rooms.add(room);
         }
         new Thread(room::ready).start();
+    }
+
+    void removeFromRoom(String username){
+        synchronized (rooms) {
+            for (JPokerRoom room : rooms) {
+                if (room.hasPlayer(username))
+                    room.removePlayer(username);
+            }
+        }
     }
 }

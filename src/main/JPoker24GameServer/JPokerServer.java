@@ -203,6 +203,7 @@ public class JPokerServer extends UnicastRemoteObject implements JPokerInterface
                     throw new Error("User not online");
                 }
                 writeOnlineUser(onlineUsers);
+                roomManager.removeFromRoom(name);
             } catch (Exception e) {
                 e.printStackTrace();
                 throw new Error(e);
@@ -214,7 +215,6 @@ public class JPokerServer extends UnicastRemoteObject implements JPokerInterface
     @Override
     public JPokerUserTransferObject getUser(String name) throws RemoteException {
         JPokerUser user = getUserFromDatabase(name);
-        System.out.println(user);
         if (user != null) {
             return new JPokerUserTransferObject(user);
         } else {
@@ -233,8 +233,8 @@ public class JPokerServer extends UnicastRemoteObject implements JPokerInterface
         public void run() {
 
             if (roomManager.isUserPlaying(user.getName())) {
-                System.err.println("user " + user.getName()
-                        + " is already playing Reject join message.");
+                System.err.println("User " + user.getName()
+                        + " is already playing reject join message.");
                 return;
             }
             JPokerUser player = getUserFromDatabase(user.getName());
