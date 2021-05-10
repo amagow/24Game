@@ -1,51 +1,63 @@
 package JPokerGame;
 
 import Common.JPokerInterface;
+import Common.JPokerUserTransferObject;
 import JPokerGame.Dialog.LoginDialog;
 import JPokerGame.Dialog.RegisterDialog;
+import jakarta.jms.JMSException;
 
 import java.awt.BorderLayout;
 import java.rmi.Naming;
 
+import javax.naming.NamingException;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
-public class JPokerClient  extends JFrame implements Runnable{
-	private JPokerInterface gameProvider;
-	private String username = "";
-	
-	public JPokerClient() {
-		try {
-			gameProvider = (JPokerInterface) Naming.lookup("Server.JPokerServer");
-		} catch (Exception e) {
-			System.err.println("Failed accessing RMI: " + e);
-		}
-	}
-	public static void main(String[] args) {
-		SwingUtilities.invokeLater(new JPokerClient());
-	}
-	@Override
-	public void run() {
-		JPokerClient frame = new JPokerClient();
+public class JPokerClient extends JFrame implements Runnable {
+    private final JMSHelperClient jmsHelper = new JMSHelperClient();
 
-		RegisterDialog registerDialog = new RegisterDialog(frame, false, gameProvider);
-		LoginDialog loginDialog = new LoginDialog(frame, false, registerDialog, gameProvider);
-		MyTabbedPane tabbedPane = new MyTabbedPane(gameProvider);
-		
-		loginDialog.setVisible(true);
-		
-		frame.setTitle("JPoker 24-Game");
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		
-		frame.add(tabbedPane, BorderLayout.CENTER);
-		
-		frame.pack();
-	}
-	public void setUsername(String text) {
-		username = text;
-		
-	}
-	public String getUsername() {
-		return username;
-	}
+    private JPokerInterface gameProvider;
+    private JPokerUserTransferObject user = null;
+
+    public JPokerClient() throws JMSException, NamingException {
+        try {
+            gameProvider = (JPokerInterface) Naming.lookup("Server.JPokerServer");
+        } catch (Exception e) {
+            System.err.println("Failed accessing RMI: " + e);
+        }
+    }
+
+    public static void main(String[] args) throws JMSException, NamingException {
+        SwingUtilities.invokeLater(new JPokerClient());
+    }
+
+    @Override
+    public void run() {
+        JPokerClient frame;
+        try {
+            frame = new JPokerClient();
+
+            RegisterDialog registerDialog = new RegisterDialog(frame, true, gameProvider);
+            LoginDialog loginDialog = new LoginDialog(frame, true, registerDialog, gameProvider);
+            loginDialog.setVisible(true);
+
+           this.user = loginDialog.getUser();
+
+            MyTabbedPane tabbedPane = new MyTabbedPane(this, gameProvider, loginDialog.getUser());
+            frame.setTitle("JPoker 24-Game");
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+            frame.add(tabbedPane, BorderLayout.CENTER);
+
+            frame.pack();
+            frame.setVisible(true);
+        } catch (JMSException | NamingException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public JPokerUserTransferObject getUser() {
+        return user;
+    }
 }

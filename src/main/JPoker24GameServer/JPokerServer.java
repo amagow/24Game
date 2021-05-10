@@ -141,6 +141,30 @@ public class JPokerServer extends UnicastRemoteObject implements JPokerInterface
         return isOnlineUserLoggedIn(onlineUsers, loginName);
     }
 
+    private JPokerUser getUserFromDatabase(String username) {
+        PreparedStatement stmt;
+        JPokerUser user = null;
+        try {
+            String selectStatement = "SELECT username, password, games_played, win" +
+                    " FROM user" +
+                    " WHERE user.username = ?";
+            stmt = conn.prepareStatement(selectStatement);
+            stmt.setString(1, username);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                String name = rs.getString(1);
+                String password = rs.getString(2);
+                Integer gamesPlayed = rs.getInt(3);
+                Integer wins = rs.getInt(4);
+                // TODO: change the average win time and rank
+                user = new JPokerUser(name, password, gamesPlayed, wins, 0, 0.0);
+            }
+        } catch (SQLException e1) {
+            e1.printStackTrace();
+        }
+        return user;
+    }
+
     @Override
     public boolean login(String loginName, String password) throws RemoteException {
         try {
@@ -187,6 +211,16 @@ public class JPokerServer extends UnicastRemoteObject implements JPokerInterface
         return true;
     }
 
+    @Override
+    public JPokerUserTransferObject getUser(String name) throws RemoteException {
+        JPokerUser user = getUserFromDatabase(name);
+        System.out.println(user);
+        if (user != null) {
+            return new JPokerUserTransferObject(user);
+        } else {
+            throw new Error("Unable to fetch user " + name + " from database");
+        }
+    }
 
     class CheckPlayer implements Runnable {
         public JPokerUserTransferObject user;
@@ -203,25 +237,8 @@ public class JPokerServer extends UnicastRemoteObject implements JPokerInterface
                         + " is already playing Reject join message.");
                 return;
             }
-
-            PreparedStatement stmt;
-            try {
-                stmt = conn
-                        .prepareStatement("SELECT * from user WHERE  userinfo.userName = ?");
-                stmt.setString(1, user.getName());
-                ResultSet rs = stmt.executeQuery();
-                if (rs.next()) {
-                    String name = rs.getString(1);
-                    String password = rs.getString(2);
-                    Integer gamesPlayed = rs.getInt(3);
-                    Integer wins = rs.getInt(4);
-                    // TODO: change the average win time and rank
-                    JPokerUser user = new JPokerUser(name,password, gamesPlayed,  wins, 0, 0.0);
-                    roomManager.allocateRoom(user);
-                }
-            } catch (SQLException e1) {
-                e1.printStackTrace();
-            }
+            JPokerUser player = getUserFromDatabase(user.getName());
+            roomManager.allocateRoom(player);
         }
     }
 

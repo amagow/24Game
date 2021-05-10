@@ -1,26 +1,64 @@
 package JPokerGame;
 
 import Common.JPokerInterface;
+import Common.JPokerUser;
+import Common.JPokerUserTransferObject;
 import JPokerGame.Panel.LeaderboardPanel;
 import JPokerGame.Panel.PlayGamePanel;
 import JPokerGame.Panel.UserProfilePanel;
+import apple.laf.JRSUIUtils;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.util.concurrent.ExecutionException;
 
 public class MyTabbedPane extends JPanel implements ActionListener {
+    private final JPokerClient parent;
+    private final JPokerInterface gameClient;
+    private final JPokerUserTransferObject user;
+    private final JTabbedPane tabbedPane;
 
-    private JPokerInterface gameClient;
+        private final SwingWorker<JPokerUserTransferObject, Void> logoutWorker = new SwingWorker<JPokerUserTransferObject, Void>() {
+        @Override
+        protected JPokerUserTransferObject doInBackground() {
+            try {
+                JPokerUserTransferObject user = parent.getUser();
+                if (user != null) {
+                    gameClient.logout(user.getName());
+                    return user;
+                }
+            } catch (Exception e1) {
+                JOptionPane.showMessageDialog(null, e1.getCause(), "Information",
+                        JOptionPane.INFORMATION_MESSAGE);
+                e1.printStackTrace();
+            }
+            return null;
+        }
 
-    public MyTabbedPane(JPokerInterface gameClient) {
+        @Override
+        protected void done() {
+            try {
+                if (get() != null)
+                    System.exit(0);
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
+    };
+
+    public MyTabbedPane(JPokerClient parent, JPokerInterface gameClient, JPokerUserTransferObject user) {
         super(new GridLayout(1, 100));
-        this.gameClient = gameClient;
-        JTabbedPane tabbedPane = new JTabbedPane();
 
-        JComponent panel1 = new UserProfilePanel();
+        this.parent = parent;
+        this.user = user;
+        this.gameClient = gameClient;
+
+        tabbedPane = new JTabbedPane();
+
+        JComponent panel1 = new UserProfilePanel(user);
         tabbedPane.addTab("User Profile", null, panel1, "User Profile");
         tabbedPane.setMnemonicAt(0, KeyEvent.VK_1);
 
@@ -57,17 +95,6 @@ public class MyTabbedPane extends JPanel implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        final JPokerClient client = (JPokerClient) SwingUtilities.getAncestorOfClass(JPokerClient.class, this);
-        new Thread(() -> {
-            try {
-                String username = client.getUsername();
-                gameClient.logout(username);
-                System.exit(0);
-            } catch (Exception e1) {
-                JOptionPane.showMessageDialog(null, e1.getCause(), "Information",
-                        JOptionPane.INFORMATION_MESSAGE);
-                e1.printStackTrace();
-            }
-        }).start();
+        logoutWorker.execute();
     }
 }

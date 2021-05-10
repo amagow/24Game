@@ -1,27 +1,35 @@
 package JPokerGame.Panel;
 
+import Common.JPokerUserTransferObject;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
 public class UserProfilePanel extends JPanel {
-    public UserProfilePanel() {
+    private final JLabel[] labels = new JLabel[5];
+    private JPokerUserTransferObject user;
+
+    public UserProfilePanel(JPokerUserTransferObject user) {
         super(false);
         this.setBorder(new EmptyBorder(20, 20, 20, 20));
-        int wins = 10;
-        int games = 20;
-        double timeToWin = 15.5;
-        int rank = 10;
-
         this.setLayout(new GridLayout(0, 1));
-        String[] sArr = {"Kevin", "Number of wins : " + wins, "Number of games : " + games,
+
+        this.user = user;
+        String username = user.getName();
+        int wins = user.getWins();
+        int games = user.getGames();
+        double timeToWin = user.getAverageTimeToWin();
+        int rank = user.getRank();
+
+        String[] sArr = {username, "Number of wins : " + wins, "Number of games : " + games,
                 "Average time to win: " + timeToWin, "Rank: #" + rank};
 
         for (int i = 0; i < sArr.length; i++) {
-            JLabel label = new JLabel(sArr[i]);
+            labels[i] = new JLabel(sArr[i]);
             if (i == 0 || i == sArr.length - 1)
-                label.setFont(new Font("", Font.BOLD, 20));
-            this.add(label);
+                labels[i].setFont(new Font("", Font.BOLD, 20));
+            add(labels[i]);
         }
     }
 }

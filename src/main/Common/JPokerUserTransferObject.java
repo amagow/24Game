@@ -1,6 +1,8 @@
 package Common;
 
-public class JPokerUserTransferObject {
+import java.io.Serializable;
+
+public class JPokerUserTransferObject implements Serializable {
     String name;
     Integer wins;
     Integer games;
