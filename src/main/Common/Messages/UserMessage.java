@@ -2,12 +2,10 @@ package Common.Messages;
 
 import Common.JPokerUserTransferObject;
 
-import java.io.Serializable;
-
-public class JMSMessage implements Serializable {
+public class UserMessage extends BaseMessage {
     private JPokerUserTransferObject user;
 
-    public JMSMessage(JPokerUserTransferObject user) {
+    public UserMessage(JPokerUserTransferObject user) {
         this.user = user;
     }
 
