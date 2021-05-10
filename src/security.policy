@@ -4,4 +4,5 @@ grant {
 	permission java.io.FilePermission "UserInfo.txt", "read,write";
 	permission java.io.FilePermission "OnlineUser.txt", "read,write";
 	permission java.util.PropertyPermission "com.sun.messaging.io.*", "read,write";
+	permission java.util.PropertyPermission "imq.jmsra.*", "read,write";
 };
