@@ -2,7 +2,9 @@ package Common.Messages;
 
 import Common.JPokerUserTransferObject;
 
-public class JMSMessage {
+import java.io.Serializable;
+
+public class JMSMessage implements Serializable {
     private JPokerUserTransferObject user;
 
     public JMSMessage(JPokerUserTransferObject user) {

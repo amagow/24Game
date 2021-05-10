@@ -31,6 +31,10 @@ public class JPokerClient extends JFrame implements Runnable {
         SwingUtilities.invokeLater(new JPokerClient());
     }
 
+   public void sendUserMessage() {
+       this.jmsHelper.sendMessage(user);
+   }
+
     @Override
     public void run() {
         JPokerClient frame;
@@ -41,7 +45,7 @@ public class JPokerClient extends JFrame implements Runnable {
             LoginDialog loginDialog = new LoginDialog(frame, true, registerDialog, gameProvider);
             loginDialog.setVisible(true);
 
-           this.user = loginDialog.getUser();
+            this.user = loginDialog.getUser();
 
             MyTabbedPane tabbedPane = new MyTabbedPane(this, gameProvider, loginDialog.getUser());
             frame.setTitle("JPoker 24-Game");
@@ -54,7 +58,6 @@ public class JPokerClient extends JFrame implements Runnable {
         } catch (JMSException | NamingException e) {
             e.printStackTrace();
         }
-
     }
 
     public JPokerUserTransferObject getUser() {
