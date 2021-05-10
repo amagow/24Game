@@ -1,23 +1,24 @@
 package JPoker24GameServer;
 
-import Common.JMSHelper;
 import Common.JPokerUser;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 
 public class JPokerRoom {
+    private final int roomId;
     private final long startTime;
     private int timeout = 10;
     private ArrayList<JPokerUser> players = new ArrayList<>(4);
 
-    protected JPokerRoom() {
+    protected JPokerRoom(int roomId) {
         this.startTime = new Date().getTime();
+        this.roomId = roomId;
     }
 
-    protected JPokerRoom(int timeout) {
+    protected JPokerRoom(int roomId, int timeout) {
         this.startTime = new Date().getTime();
+        this.roomId = roomId;
         this.timeout = timeout;
     }
 
