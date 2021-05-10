@@ -48,8 +48,10 @@ public class JMSHelper {
             System.out.println("JNDI error:" + e);
             throw e;
         }
+    }
 
-
+    public Queue getQueue() {
+        return queue;
     }
 
     public Session createSession() throws JMSException {

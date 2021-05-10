@@ -1,7 +1,7 @@
 package JPoker24GameServer;
 
 import Common.*;
-import Common.Messages.JMSMessage;
+import Common.Messages.UserMessage;
 import jakarta.jms.JMSException;
 
 import javax.naming.NamingException;
@@ -22,13 +22,9 @@ public class JPokerServer extends UnicastRemoteObject implements JPokerInterface
     //    private static final String userInfoPath = "UserInfo.txt";
     private static final String onlineUserPath = "OnlineUser.txt";
     private final Connection conn;
-
     private final JMSHelperServer jmsHelper = new JMSHelperServer();
     private final ReadMessage messageReader = new ReadMessage();
-
-    private final JPokerRoomManager roomManager = new JPokerRoomManager();
-
-    private final ArrayList<JPokerUser> players = new ArrayList<>();
+    private final JPokerRoomManager roomManager = new JPokerRoomManager(this);
 
     protected JPokerServer() throws RemoteException, SQLException, NamingException, JMSException {
 
@@ -71,6 +67,10 @@ public class JPokerServer extends UnicastRemoteObject implements JPokerInterface
         }
     }
 
+    public JMSHelperServer getJmsHelper() {
+        return jmsHelper;
+    }
+
     public ArrayList<String> readOnlineUser() {
         ArrayList<String> onlineUsers = null;
         synchronized (onlineUserPath) {
@@ -83,7 +83,6 @@ public class JPokerServer extends UnicastRemoteObject implements JPokerInterface
 //                throw new Error(e);
             }
         }
-
         return onlineUsers;
     }
 
@@ -238,7 +237,11 @@ public class JPokerServer extends UnicastRemoteObject implements JPokerInterface
                 return;
             }
             JPokerUser player = getUserFromDatabase(user.getName());
-            roomManager.allocateRoom(player);
+            try {
+                roomManager.allocateRoom(player);
+            } catch (JMSException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -247,8 +250,10 @@ public class JPokerServer extends UnicastRemoteObject implements JPokerInterface
         public void run() {
             while (true) {
                 try {
-                    JMSMessage message = jmsHelper.receiveMessage(jmsHelper.queueReader);
-                    new Thread(new CheckPlayer(message.getUser())).start();
+                    UserMessage message = jmsHelper.receiveMessage(jmsHelper.getQueueReader());
+                    if (message != null){
+                        new Thread(new CheckPlayer(message.getUser())).start();
+                    }
                 } catch (JMSException e) {
                     e.printStackTrace();
                 }
