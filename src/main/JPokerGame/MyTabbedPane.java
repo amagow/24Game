@@ -62,7 +62,7 @@ public class MyTabbedPane extends JPanel implements ActionListener {
         tabbedPane.addTab("User Profile", null, panel1, "User Profile");
         tabbedPane.setMnemonicAt(0, KeyEvent.VK_1);
 
-        JComponent panel2 = new PlayGamePanel();
+        JComponent panel2 = new PlayGamePanel(parent);
         tabbedPane.addTab("Play Game", null, panel2, "Play Game");
         tabbedPane.setMnemonicAt(1, KeyEvent.VK_2);
 

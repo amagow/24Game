@@ -12,8 +12,9 @@ public class UserProfilePanel extends JPanel {
 
     public UserProfilePanel(JPokerUserTransferObject user) {
         super(false);
-        this.setBorder(new EmptyBorder(20, 20, 20, 20));
-        this.setLayout(new GridLayout(0, 1));
+
+        setBorder(new EmptyBorder(20, 20, 20, 20));
+        setLayout(new GridLayout(0, 1));
 
         this.user = user;
         String username = user.getName();
