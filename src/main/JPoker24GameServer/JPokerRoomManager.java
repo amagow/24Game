@@ -49,22 +49,24 @@ public class JPokerRoomManager {
 
     void allocateRoom(JPokerUser user) throws JMSException {
         boolean isAdded = false;
-        int id = -1;
+        JPokerRoom chosenRoom = null;
 
         synchronized (rooms) {
             for (JPokerRoom room : rooms) {
                 if (room.isFull() || room.isStarted())
                     continue;
                 room.addPlayer(user);
-                id = room.getRoomId();
+                chosenRoom = room;
                 isAdded = true;
             }
         }
 
         if (!isAdded) {
-            id = generateId();
+            Integer id = generateId();
+            assert id >= 0;
 
             JPokerRoom room = new JPokerRoom(gameServer, id);
+            chosenRoom = room;
             room.addPlayer(user);
             synchronized (rooms) {
                 rooms.add(room);
@@ -72,8 +74,7 @@ public class JPokerRoomManager {
             new Thread(room::ready).start();
         }
 
-        assert id >= 0;
-        Message message = gameServer.getJmsHelper().createMessage(new RoomIdMessage(id));
+        Message message = gameServer.getJmsHelper().createMessage(new RoomIdMessage(chosenRoom.getRoomId(), chosenRoom.getPlayers()));
         message.setStringProperty("messageTo", user.getName());
         gameServer.getJmsHelper().broadcastMessage(message);
     }

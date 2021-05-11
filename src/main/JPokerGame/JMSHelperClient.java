@@ -9,6 +9,7 @@ import JPokerGame.Panel.PlayGamePanel;
 import jakarta.jms.*;
 
 import javax.naming.NamingException;
+import java.util.Arrays;
 
 class JMSHelperClient extends JMSHelper {
     private final JPokerUserTransferObject user;
@@ -45,7 +46,21 @@ class JMSHelperClient extends JMSHelper {
                 Object objectMessage = ((ObjectMessage) message).getObject();
                 if (objectMessage instanceof RoomIdMessage) {
                     RoomIdMessage roomIdMessage = (RoomIdMessage) objectMessage;
-                    if(gameClient.getRoomId() < 0){
+
+                    for (JPokerUserTransferObject u : roomIdMessage.getPlayers())
+                        System.out.println(u.getName());
+
+                    System.out.println(
+                            Arrays
+                                    .stream(roomIdMessage.getPlayers())
+                                    .anyMatch(player -> player.getName().equals(gameClient.getUser().getName()))
+                    );
+
+                    if (gameClient.getRoomId() < 0 && gameClient.getUser() != null &&
+                            Arrays
+                                    .stream(roomIdMessage.getPlayers())
+                                    .anyMatch(player -> player.getName().equals(gameClient.getUser().getName()))
+                    ) {
                         gameClient.setRoomId(roomIdMessage.getRoomId());
                         System.out.println(gameClient.getRoomId());
                     }
@@ -53,9 +68,9 @@ class JMSHelperClient extends JMSHelper {
                 if (objectMessage instanceof CardsMessage) {
                     CardsMessage cardsMessage = (CardsMessage) objectMessage;
                     System.out.println(cardsMessage.getRoomId());
-                    if(gameClient.getRoomId() == cardsMessage.getRoomId()){
-                       PlayGamePanel panel = gameClient.getTabbedPane().getPlayGamePanel();
-                       panel.createPlayingGamePanel(cardsMessage);
+                    if (gameClient.getRoomId() == cardsMessage.getRoomId()) {
+                        PlayGamePanel panel = gameClient.getTabbedPane().getPlayGamePanel();
+                        panel.createPlayingGamePanel(cardsMessage);
                     }
                 }
             } catch (JMSException e) {

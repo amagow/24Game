@@ -16,7 +16,7 @@ public class JPokerRoom {
     private final int roomId;
     private final long startTime;
     private final int maxPlayers = 4;
-    private int timeout = 10;
+    private int timeout = 10000;
     private boolean started = false;
     private ArrayList<JPokerUser> players = new ArrayList<>(4);
     private String[] cards;
@@ -33,6 +33,18 @@ public class JPokerRoom {
         this.roomId = roomId;
         this.gameServer = gameServer;
         this.timeout = timeout;
+    }
+
+    public JPokerUserTransferObject[] getPlayers() {
+        return players.stream().map(JPokerUserTransferObject::new).toArray(JPokerUserTransferObject[]::new);
+    }
+
+    public Integer[] getCardNumbers() {
+        return cardNumbers;
+    }
+
+    public String[] getCards() {
+        return cards;
     }
 
     public int getRoomId() {
@@ -69,7 +81,7 @@ public class JPokerRoom {
 
     public void removePlayer(String username) {
         players.removeIf(user -> user.getName().equals(username));
-        
+
         CardsMessage cardsMessage = new CardsMessage(roomId, cards, cardNumbers,
                 players.stream().map(JPokerUserTransferObject::new).toArray(JPokerUserTransferObject[]::new));
         try {
@@ -83,7 +95,7 @@ public class JPokerRoom {
     public void ready() {
         while (true) {
             long currTime = new Date().getTime();
-            if (isFull() || players.size() >= 2 && currTime - startTime > timeout) {
+            if (isFull() || (players.size() >= 2 && currTime - startTime > timeout)) {
                 break;
             }
         }
@@ -115,7 +127,7 @@ public class JPokerRoom {
 
         this.cards = cards;
         this.cardNumbers = cardNumbers;
-        
+
         CardsMessage cardsMessage = new CardsMessage(roomId, cards, cardNumbers,
                 players.stream().map(JPokerUserTransferObject::new).toArray(JPokerUserTransferObject[]::new));
         try {
