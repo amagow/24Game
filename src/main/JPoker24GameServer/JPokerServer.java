@@ -1,22 +1,26 @@
 package JPoker24GameServer;
 
-import Common.*;
+import Common.JPokerInterface;
+import Common.JPokerUser;
+import Common.JPokerUserTransferObject;
 import Common.Messages.UserMessage;
 import jakarta.jms.JMSException;
 
 import javax.naming.NamingException;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.PrintWriter;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
+import java.io.*;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class JPokerServer extends UnicastRemoteObject implements JPokerInterface {
     //    private static final String userInfoPath = "UserInfo.txt";
@@ -65,6 +69,32 @@ public class JPokerServer extends UnicastRemoteObject implements JPokerInterface
                 throw new Error(e);
             }
         }
+    }
+
+    private static boolean checkValidity(String string, Integer[] cards) {
+        Set<Integer> numbers = new HashSet<>();
+
+        Pattern p = Pattern.compile("\\d+");
+        Matcher m = p.matcher(string);
+
+        while (m.find()) {
+            Integer i = Integer.parseInt(m.group());
+            if (i < 1 || i > 13)
+                return false;
+            numbers.add(i);
+        }
+
+        if (numbers.size() != 4) {
+            return false;
+        }
+
+        for (Integer number : numbers) {
+            if (Arrays.stream(cards).noneMatch(number::equals)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public JMSHelperServer getJmsHelper() {
@@ -221,6 +251,32 @@ public class JPokerServer extends UnicastRemoteObject implements JPokerInterface
         }
     }
 
+    private String parseExpression(String expression) throws ScriptException {
+        ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
+        ScriptEngine scriptEngine = scriptEngineManager.getEngineByName("JavaScript");
+        return scriptEngine.eval(expression).toString();
+    }
+
+    @Override
+    public String getAnswer(JPokerUserTransferObject user, String answer) throws RemoteException, ScriptException {
+        JPokerRoom room = roomManager.findRoomByUsername(user.getName());
+        Integer[] cards = room.getCardNumbers();
+        String tmp = answer.replace("J", "11").replace("Q", "12").replace("K", "13");
+
+        System.out.println(tmp);
+        boolean isValid = checkValidity(tmp, cards);
+        if (!isValid) {
+            return "?";
+        }
+
+        String parsedAnswer = parseExpression(tmp);
+        if (Integer.parseInt(parsedAnswer) < 0) {
+            return "?";
+        }
+        // TODO: If evaluation == 24 then update db and send game over message
+        return parsedAnswer;
+    }
+
     class CheckPlayer implements Runnable {
         public JPokerUserTransferObject user;
 
@@ -251,7 +307,7 @@ public class JPokerServer extends UnicastRemoteObject implements JPokerInterface
             while (true) {
                 try {
                     UserMessage message = jmsHelper.receiveMessage(jmsHelper.getQueueReader());
-                    if (message != null){
+                    if (message != null) {
                         new Thread(new CheckPlayer(message.getUser())).start();
                     }
                 } catch (JMSException e) {
