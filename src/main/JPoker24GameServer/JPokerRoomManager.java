@@ -32,10 +32,10 @@ public class JPokerRoomManager {
     private boolean containsRoomId(ArrayList<JPokerRoom> rooms, int id) {
         for (JPokerRoom room : rooms) {
             if (room.getRoomId() == id) {
-                return false;
+                return true;
             }
         }
-        return true;
+        return false;
     }
 
     private int generateId() {
