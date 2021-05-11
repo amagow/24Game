@@ -29,15 +29,21 @@ public class JPokerRoomManager {
         return findRoomByUsername(username) != null;
     }
 
+    private boolean containsRoomId(ArrayList<JPokerRoom> rooms, int id) {
+        for (JPokerRoom room : rooms) {
+            if (room.getRoomId() == id) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private int generateId() {
         Random r = new Random();
         Integer id;
-        while (true) {
+        do {
             id = r.nextInt(Integer.MAX_VALUE);
-            if (!rooms.stream().anyMatch(id::equals)) {
-                break;
-            }
-        }
+        } while (containsRoomId(rooms, id));
         return id;
     }
 
@@ -55,7 +61,7 @@ public class JPokerRoomManager {
             }
         }
 
-        if(!isAdded){
+        if (!isAdded) {
             id = generateId();
 
             JPokerRoom room = new JPokerRoom(gameServer, id);
