@@ -2,8 +2,10 @@ package JPokerGame;
 
 import Common.JMSHelper;
 import Common.JPokerUserTransferObject;
+import Common.Messages.CardsMessage;
 import Common.Messages.RoomIdMessage;
 import Common.Messages.UserMessage;
+import JPokerGame.Panel.PlayGamePanel;
 import jakarta.jms.*;
 
 import javax.naming.NamingException;
@@ -43,7 +45,18 @@ class JMSHelperClient extends JMSHelper {
                 Object objectMessage = ((ObjectMessage) message).getObject();
                 if (objectMessage instanceof RoomIdMessage) {
                     RoomIdMessage roomIdMessage = (RoomIdMessage) objectMessage;
-                    gameClient.setRoomId(roomIdMessage.getRoomId());
+                    if(gameClient.getRoomId() < 0){
+                        gameClient.setRoomId(roomIdMessage.getRoomId());
+                        System.out.println(gameClient.getRoomId());
+                    }
+                }
+                if (objectMessage instanceof CardsMessage) {
+                    CardsMessage cardsMessage = (CardsMessage) objectMessage;
+                    System.out.println(cardsMessage.getRoomId());
+                    if(gameClient.getRoomId() == cardsMessage.getRoomId()){
+                       PlayGamePanel panel = gameClient.getTabbedPane().getPlayGamePanel();
+                       panel.createPlayingGamePanel(cardsMessage);
+                    }
                 }
             } catch (JMSException e) {
                 e.printStackTrace();

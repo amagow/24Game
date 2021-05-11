@@ -18,7 +18,8 @@ public class JPokerClient extends JFrame implements Runnable {
 
     private JPokerInterface gameProvider;
     private JPokerUserTransferObject user = null;
-    private int roomId;
+    private int roomId = -1;
+    private MyTabbedPane tabbedPane;
 
     public JPokerClient() throws JMSException, NamingException {
         try {
@@ -30,6 +31,10 @@ public class JPokerClient extends JFrame implements Runnable {
 
     public static void main(String[] args) throws JMSException, NamingException {
         SwingUtilities.invokeLater(new JPokerClient());
+    }
+
+    public MyTabbedPane getTabbedPane() {
+        return tabbedPane;
     }
 
     public int getRoomId() {
@@ -57,7 +62,7 @@ public class JPokerClient extends JFrame implements Runnable {
             this.user = loginDialog.getUser();
             this.jmsHelper = new JMSHelperClient(this, user);
 
-            MyTabbedPane tabbedPane = new MyTabbedPane(this, gameProvider, loginDialog.getUser());
+            tabbedPane = new MyTabbedPane(this, gameProvider, loginDialog.getUser());
             frame.setTitle("JPoker 24-Game");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 

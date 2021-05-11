@@ -20,8 +20,7 @@ public class MyTabbedPane extends JPanel implements ActionListener {
     private final JPokerInterface gameClient;
     private final JPokerUserTransferObject user;
     private final JTabbedPane tabbedPane;
-
-        private final SwingWorker<JPokerUserTransferObject, Void> logoutWorker = new SwingWorker<JPokerUserTransferObject, Void>() {
+    private final SwingWorker<JPokerUserTransferObject, Void> logoutWorker = new SwingWorker<JPokerUserTransferObject, Void>() {
         @Override
         protected JPokerUserTransferObject doInBackground() {
             try {
@@ -48,6 +47,7 @@ public class MyTabbedPane extends JPanel implements ActionListener {
             }
         }
     };
+    private PlayGamePanel playGamePanel;
 
     public MyTabbedPane(JPokerClient parent, JPokerInterface gameClient, JPokerUserTransferObject user) {
         super(new GridLayout(1, 100));
@@ -62,8 +62,8 @@ public class MyTabbedPane extends JPanel implements ActionListener {
         tabbedPane.addTab("User Profile", null, panel1, "User Profile");
         tabbedPane.setMnemonicAt(0, KeyEvent.VK_1);
 
-        JComponent panel2 = new PlayGamePanel(parent);
-        tabbedPane.addTab("Play Game", null, panel2, "Play Game");
+        playGamePanel = new PlayGamePanel(parent);
+        tabbedPane.addTab("Play Game", null, playGamePanel, "Play Game");
         tabbedPane.setMnemonicAt(1, KeyEvent.VK_2);
 
         JComponent panel3 = new LeaderboardPanel();
@@ -82,6 +82,10 @@ public class MyTabbedPane extends JPanel implements ActionListener {
 
         // Add the tabbed pane to this panel.
         add(tabbedPane);
+    }
+
+    public PlayGamePanel getPlayGamePanel() {
+        return playGamePanel;
     }
 
     private JComponent makeTextPanel(String text) {
