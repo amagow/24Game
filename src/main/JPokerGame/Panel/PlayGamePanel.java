@@ -1,5 +1,6 @@
 package JPokerGame.Panel;
 
+import Common.Messages.CardsMessage;
 import JPokerGame.JPokerClient;
 
 import javax.swing.*;
@@ -26,6 +27,12 @@ public class PlayGamePanel extends JPanel {
         this.stage = stage;
         CardLayout cl = (CardLayout) (this.getLayout());
         cl.show(this, "" + stage);
+    }
+
+    public void createPlayingGamePanel(CardsMessage message) {
+        PlayingGamePanel panel = new PlayingGamePanel(message.getUsers(), message.getCards(), gameClient.getUser());
+        add("" + stages.GAME_PLAYING, panel);
+        setStage(PlayGamePanel.stages.GAME_PLAYING);
     }
 
     public enum stages {
