@@ -19,6 +19,8 @@ public class JPokerRoom {
     private int timeout = 10;
     private boolean started = false;
     private ArrayList<JPokerUser> players = new ArrayList<>(4);
+    private String[] cards;
+    private Integer[] cardNumbers;
 
     protected JPokerRoom(JPokerServer gameServer, int roomId) {
         this.startTime = new Date().getTime();
@@ -67,6 +69,15 @@ public class JPokerRoom {
 
     public void removePlayer(String username) {
         players.removeIf(user -> user.getName().equals(username));
+        
+        CardsMessage cardsMessage = new CardsMessage(roomId, cards, cardNumbers,
+                players.stream().map(JPokerUserTransferObject::new).toArray(JPokerUserTransferObject[]::new));
+        try {
+            Message message = gameServer.getJmsHelper().createMessage(cardsMessage);
+            gameServer.getJmsHelper().broadcastMessage(message);
+        } catch (JMSException e) {
+            e.printStackTrace();
+        }
     }
 
     public void ready() {
@@ -102,9 +113,9 @@ public class JPokerRoom {
 
         } while (i != numCards);
 
-        for (String card : cards)
-            System.out.println(card);
-
+        this.cards = cards;
+        this.cardNumbers = cardNumbers;
+        
         CardsMessage cardsMessage = new CardsMessage(roomId, cards, cardNumbers,
                 players.stream().map(JPokerUserTransferObject::new).toArray(JPokerUserTransferObject[]::new));
         try {
