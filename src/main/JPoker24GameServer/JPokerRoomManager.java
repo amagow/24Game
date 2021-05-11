@@ -6,6 +6,8 @@ import jakarta.jms.JMSException;
 import jakarta.jms.Message;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Random;
 
 public class JPokerRoomManager {
     private final JPokerServer gameServer;
@@ -23,25 +25,48 @@ public class JPokerRoomManager {
         return null;
     }
 
-    boolean isUserPlaying(String username) {
+    public boolean isUserPlaying(String username) {
         return findRoomByUsername(username) != null;
     }
 
+    private int generateId() {
+        Random r = new Random();
+        Integer id;
+        while (true) {
+            id = r.nextInt(Integer.MAX_VALUE);
+            if (!rooms.stream().anyMatch(id::equals)) {
+                break;
+            }
+        }
+        return id;
+    }
+
     void allocateRoom(JPokerUser user) throws JMSException {
+        boolean isAdded = false;
+        int id = -1;
+
         synchronized (rooms) {
             for (JPokerRoom room : rooms) {
-                if (!room.isFull())
-                    room.addPlayer(user);
+                if (room.isFull() || room.isStarted())
+                    continue;
+                room.addPlayer(user);
+                id = room.getRoomId();
+                isAdded = true;
             }
         }
 
-        int id = rooms.size();
-        JPokerRoom room = new JPokerRoom(id);
-        room.addPlayer(user);
-        synchronized (rooms) {
-            rooms.add(room);
+        if(!isAdded){
+            id = generateId();
+
+            JPokerRoom room = new JPokerRoom(gameServer, id);
+            room.addPlayer(user);
+            synchronized (rooms) {
+                rooms.add(room);
+            }
+            new Thread(room::ready).start();
         }
-        new Thread(room::ready).start();
+
+        assert id >= 0;
         Message message = gameServer.getJmsHelper().createMessage(new RoomIdMessage(id));
         message.setStringProperty("messageTo", user.getName());
         gameServer.getJmsHelper().broadcastMessage(message);
@@ -49,9 +74,15 @@ public class JPokerRoomManager {
 
     void removeFromRoom(String username) {
         synchronized (rooms) {
-            for (JPokerRoom room : rooms) {
+            Iterator<JPokerRoom> iter = rooms.iterator();
+
+            while (iter.hasNext()) {
+                JPokerRoom room = iter.next();
                 if (room.hasPlayer(username))
                     room.removePlayer(username);
+                if (room.isEmpty()) {
+                    iter.remove();
+                }
             }
         }
     }
