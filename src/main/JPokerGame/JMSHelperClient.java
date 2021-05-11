@@ -2,24 +2,30 @@ package JPokerGame;
 
 import Common.JMSHelper;
 import Common.JPokerUserTransferObject;
-import Common.Messages.JMSMessage;
+import Common.Messages.RoomIdMessage;
+import Common.Messages.UserMessage;
 import jakarta.jms.*;
 
 import javax.naming.NamingException;
-import java.io.Serializable;
 
-class JMSHelperClient extends JMSHelper implements MessageListener {
-    MessageProducer queueSender;
-    MessageConsumer topicReader;
+class JMSHelperClient extends JMSHelper {
+    private final JPokerUserTransferObject user;
+    private final MessageProducer queueSender;
+    private final MessageConsumer topicReader;
+    private final JPokerClient gameClient;
 
-    public JMSHelperClient() throws JMSException, NamingException {
+    public JMSHelperClient(JPokerClient gameClient, JPokerUserTransferObject user) throws JMSException, NamingException {
+        this.user = user;
+        this.gameClient = gameClient;
+
         queueSender = this.createQueueSender();
         topicReader = this.createTopicReader();
-        topicReader.setMessageListener(this);
+
+        topicReader.setMessageListener(new TopicReader());
     }
 
     public void sendMessage(JPokerUserTransferObject user) {
-        JMSMessage userMessage = new JMSMessage(user);
+        UserMessage userMessage = new UserMessage(user);
         try {
             Message message = this.createMessage(userMessage);
             queueSender.send(message);
@@ -29,8 +35,20 @@ class JMSHelperClient extends JMSHelper implements MessageListener {
         }
     }
 
-    @Override
-    public void onMessage(Message message) {
+    public class TopicReader implements MessageListener {
 
+        @Override
+        public void onMessage(Message message) {
+            try {
+                Object objectMessage = ((ObjectMessage) message).getObject();
+                if (objectMessage instanceof RoomIdMessage) {
+                    RoomIdMessage roomIdMessage = (RoomIdMessage) objectMessage;
+                    gameClient.setRoomId(roomIdMessage.getRoomId());
+                }
+            } catch (JMSException e) {
+                e.printStackTrace();
+            }
+
+        }
     }
 }

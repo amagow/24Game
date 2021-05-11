@@ -14,10 +14,11 @@ import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
 public class JPokerClient extends JFrame implements Runnable {
-    private final JMSHelperClient jmsHelper = new JMSHelperClient();
+    private JMSHelperClient jmsHelper;
 
     private JPokerInterface gameProvider;
     private JPokerUserTransferObject user = null;
+    private int roomId;
 
     public JPokerClient() throws JMSException, NamingException {
         try {
@@ -31,9 +32,17 @@ public class JPokerClient extends JFrame implements Runnable {
         SwingUtilities.invokeLater(new JPokerClient());
     }
 
-   public void sendUserMessage() {
-       this.jmsHelper.sendMessage(user);
-   }
+    public int getRoomId() {
+        return roomId;
+    }
+
+    public void setRoomId(int roomId) {
+        this.roomId = roomId;
+    }
+
+    public void sendUserMessage() {
+        this.jmsHelper.sendMessage(user);
+    }
 
     @Override
     public void run() {
@@ -46,6 +55,7 @@ public class JPokerClient extends JFrame implements Runnable {
             loginDialog.setVisible(true);
 
             this.user = loginDialog.getUser();
+            this.jmsHelper = new JMSHelperClient(this, user);
 
             MyTabbedPane tabbedPane = new MyTabbedPane(this, gameProvider, loginDialog.getUser());
             frame.setTitle("JPoker 24-Game");
