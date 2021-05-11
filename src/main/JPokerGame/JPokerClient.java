@@ -15,12 +15,10 @@ import javax.swing.SwingUtilities;
 
 public class JPokerClient extends JFrame implements Runnable {
     private JMSHelperClient jmsHelper;
-
     private JPokerInterface gameProvider;
     private JPokerUserTransferObject user = null;
     private int roomId = -1;
     private MyTabbedPane tabbedPane;
-
     public JPokerClient() throws JMSException, NamingException {
         try {
             gameProvider = (JPokerInterface) Naming.lookup("Server.JPokerServer");
@@ -31,6 +29,10 @@ public class JPokerClient extends JFrame implements Runnable {
 
     public static void main(String[] args) throws JMSException, NamingException {
         SwingUtilities.invokeLater(new JPokerClient());
+    }
+
+    public JPokerInterface getGameProvider() {
+        return gameProvider;
     }
 
     public MyTabbedPane getTabbedPane() {

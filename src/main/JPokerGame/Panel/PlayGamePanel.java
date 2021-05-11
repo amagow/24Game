@@ -30,7 +30,7 @@ public class PlayGamePanel extends JPanel {
     }
 
     public void createPlayingGamePanel(CardsMessage message) {
-        PlayingGamePanel panel = new PlayingGamePanel(message.getUsers(), message.getCards(), gameClient.getUser());
+        PlayingGamePanel panel = new PlayingGamePanel(gameClient.getGameProvider(), message.getUsers(), message.getCards(), gameClient.getUser());
         add("" + stages.GAME_PLAYING, panel);
         setStage(PlayGamePanel.stages.GAME_PLAYING);
     }

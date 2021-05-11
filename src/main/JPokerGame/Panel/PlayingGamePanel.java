@@ -1,23 +1,30 @@
 package JPokerGame.Panel;
 
+import Common.JPokerInterface;
 import Common.JPokerUserTransferObject;
 
+import javax.script.ScriptException;
 import javax.swing.*;
 import javax.swing.border.CompoundBorder;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.rmi.RemoteException;
 
 public class PlayingGamePanel extends JPanel {
     private final JPokerUserTransferObject[] players;
     private final String[] cards;
     private final JPokerUserTransferObject user;
+    private final JPokerInterface gameProvider;
 
-    public PlayingGamePanel(JPokerUserTransferObject[] players, String[] cards, JPokerUserTransferObject user) {
+    public PlayingGamePanel(JPokerInterface gameProvider, JPokerUserTransferObject[] players, String[] cards, JPokerUserTransferObject user) {
+        this.gameProvider = gameProvider;
         this.players = players;
         this.cards = cards;
         this.user = user;
-        
+
         setLayout(new BorderLayout());
-        
+
         JPanel cardsAndInputPanel = new JPanel(new BorderLayout());
 
         cardsAndInputPanel.add(new CardsPanel(), BorderLayout.CENTER);
@@ -27,7 +34,7 @@ public class PlayingGamePanel extends JPanel {
         add(new UsersPanel(), BorderLayout.LINE_END);
     }
 
-    private class UserPanel extends JPanel {
+    private static class UserPanel extends JPanel {
         public UserPanel(JPokerUserTransferObject user) {
             setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
             setBorder(new CompoundBorder(BorderFactory.createMatteBorder(1,
@@ -53,7 +60,7 @@ public class PlayingGamePanel extends JPanel {
         }
     }
 
-    private class CardPanel extends JPanel {
+    private static class CardPanel extends JPanel {
         public CardPanel(String card) {
             setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
             String url = "images/" + card;
@@ -83,15 +90,32 @@ public class PlayingGamePanel extends JPanel {
         }
     }
 
-    private class InputPanel extends JPanel {
+    private class InputPanel extends JPanel implements ActionListener {
+        private final JTextField inputField = new JTextField();
+        private final JLabel result = new JLabel("= ?");
 
         public InputPanel() {
-            JTextField inputField = new JTextField();
-            JLabel result = new JLabel("= ?");
+
             inputField.setPreferredSize(new Dimension(300, 40));
+            inputField.addActionListener(this);
 
             add(inputField);
             add(result);
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            try {
+                String validatedAnswer = gameProvider.getAnswer(user, inputField.getText());
+                System.out.println(validatedAnswer);
+                if (validatedAnswer.equals("?"))
+                    JOptionPane.showMessageDialog(null, "The string can only contain cards shown on the screen.",
+                            "Invalid String", JOptionPane.ERROR_MESSAGE);
+                else
+                    result.setText(validatedAnswer);
+            } catch (ScriptException | RemoteException e1) {
+                e1.printStackTrace();
+            }
         }
     }
 }
