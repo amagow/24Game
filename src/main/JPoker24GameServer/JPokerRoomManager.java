@@ -95,7 +95,14 @@ public class JPokerRoomManager {
     }
 
     public void endGame(JPokerRoom removalRoom) {
-        synchronized (rooms) {
-            rooms.removeIf(room -> room.getRoomId() == removalRoom.getRoomId());
-        }}
+        Iterator<JPokerRoom> iter = rooms.iterator();
+
+        while (iter.hasNext()) {
+            JPokerRoom room = iter.next();
+            if (room.getRoomId() == removalRoom.getRoomId()) {
+                room.endGame();
+                iter.remove();
+            }
+        }
+    }
 }

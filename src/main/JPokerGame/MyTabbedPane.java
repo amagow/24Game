@@ -49,12 +49,12 @@ public class MyTabbedPane extends JPanel implements ActionListener {
     };
     private PlayGamePanel playGamePanel;
 
-    public MyTabbedPane(JPokerClient parent, JPokerInterface gameClient, JPokerUserTransferObject user) {
+    public MyTabbedPane(JPokerClient parent, JPokerInterface gameProvider, JPokerUserTransferObject user) {
         super(new GridLayout(1, 100));
 
         this.parent = parent;
         this.user = user;
-        this.gameClient = gameClient;
+        this.gameClient = gameProvider;
 
         tabbedPane = new JTabbedPane();
 
@@ -66,7 +66,7 @@ public class MyTabbedPane extends JPanel implements ActionListener {
         tabbedPane.addTab("Play Game", null, playGamePanel, "Play Game");
         tabbedPane.setMnemonicAt(1, KeyEvent.VK_2);
 
-        JComponent panel3 = new LeaderboardPanel();
+        JComponent panel3 = new LeaderboardPanel(gameProvider);
         tabbedPane.addTab("Leader Board", null, panel3, "Leader Board");
         tabbedPane.setMnemonicAt(2, KeyEvent.VK_3);
 

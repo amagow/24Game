@@ -45,7 +45,6 @@ public class JMSHelper {
             connection = connectionFactory.createConnection();
             connection.start();
         } catch (NamingException e) {
-            System.out.println("JNDI error:" + e);
             throw e;
         }
     }

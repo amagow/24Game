@@ -108,7 +108,6 @@ public class PlayingGamePanel extends JPanel {
         public void actionPerformed(ActionEvent e) {
             try {
                 String validatedAnswer = gameProvider.getAnswer(user, inputField.getText());
-                System.out.println(validatedAnswer);
                 if (validatedAnswer.equals("?"))
                     JOptionPane.showMessageDialog(null, "The string can only contain cards shown on the screen.",
                             "Invalid String", JOptionPane.ERROR_MESSAGE);

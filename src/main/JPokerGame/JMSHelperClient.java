@@ -34,7 +34,6 @@ class JMSHelperClient extends JMSHelper {
         try {
             Message message = this.createMessage(userMessage);
             queueSender.send(message);
-            System.out.println("JMSClient: Message send" + message);
         } catch (JMSException e) {
             System.err.println("JMSClient: Failed to send message");
         }
@@ -66,11 +65,6 @@ class JMSHelperClient extends JMSHelper {
                 }
                 if (objectMessage instanceof GameOverMessage) {
                     GameOverMessage gameOverMessage = (GameOverMessage) objectMessage;
-                    System.out.println("Received winning game message");
-                    System.out.println(gameClient.getRoomId() == gameOverMessage.getRoomId() );
-                    System.out.println( Arrays
-                            .stream(gameOverMessage.getPlayers())
-                            .anyMatch(player -> player.getName().equals(gameClient.getUser().getName())));
                     if (gameClient.getRoomId() == gameOverMessage.getRoomId() &&
                             Arrays
                                     .stream(gameOverMessage.getPlayers())

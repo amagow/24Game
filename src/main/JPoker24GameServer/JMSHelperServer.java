@@ -26,7 +26,6 @@ public class JMSHelperServer extends JMSHelper {
 
     public UserMessage receiveMessage(MessageConsumer queueReader) throws JMSException {
         try {
-            System.out.println("JMSServer: Start receiving message");
             Message message = queueReader.receive();
             Object objectMessage = ((ObjectMessage) message).getObject();
             if (objectMessage instanceof UserMessage){
@@ -45,7 +44,6 @@ public class JMSHelperServer extends JMSHelper {
     public void broadcastMessage(Message jmsMessage) throws JMSException {
         try {
             topicSender.send(jmsMessage);
-            System.out.println("JMSServer: Finish broadcast message \n" + jmsMessage);
         } catch (JMSException e) {
             System.err.println("JMSServer: Failed to broadcast message " + e);
             throw e;

@@ -14,25 +14,30 @@ import java.util.Random;
 public class JPokerRoom {
     private final JPokerServer gameServer;
     private final int roomId;
-    private final long startTime;
+    private final long readyTime;
     private final int maxPlayers = 4;
+    private long startTime;
+    private long timeToWin;
     private int timeout = 10000;
     private boolean started = false;
     private ArrayList<JPokerUser> players = new ArrayList<>(4);
     private String[] cards;
     private Integer[] cardNumbers;
-
     protected JPokerRoom(JPokerServer gameServer, int roomId) {
-        this.startTime = new Date().getTime();
+        this.readyTime = new Date().getTime();
         this.gameServer = gameServer;
         this.roomId = roomId;
     }
 
     protected JPokerRoom(JPokerServer gameServer, int roomId, int timeout) {
-        this.startTime = new Date().getTime();
+        this.readyTime = new Date().getTime();
         this.roomId = roomId;
         this.gameServer = gameServer;
         this.timeout = timeout;
+    }
+
+    public long getTimeToWin() {
+        return timeToWin;
     }
 
     public JPokerUserTransferObject[] getPlayers() {
@@ -95,7 +100,7 @@ public class JPokerRoom {
     public void ready() {
         while (true) {
             long currTime = new Date().getTime();
-            if (isFull() || (players.size() >= 2 && currTime - startTime > timeout)) {
+            if (isFull() || (players.size() >= 2 && currTime - readyTime > timeout)) {
                 break;
             }
         }
@@ -103,7 +108,7 @@ public class JPokerRoom {
     }
 
     private void start() {
-        System.out.println("Game started");
+        startTime = new Date().getTime();
 
         started = true;
         int numCards = 4;
@@ -136,5 +141,9 @@ public class JPokerRoom {
         } catch (JMSException e) {
             e.printStackTrace();
         }
+    }
+
+    public void endGame() {
+        timeToWin = new Date().getTime() - startTime;
     }
 }
