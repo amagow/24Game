@@ -3,8 +3,10 @@ package JPoker24GameServer;
 import Common.JPokerInterface;
 import Common.JPokerUser;
 import Common.JPokerUserTransferObject;
+import Common.Messages.GameOverMessage;
 import Common.Messages.UserMessage;
 import jakarta.jms.JMSException;
+import jakarta.jms.Message;
 
 import javax.naming.NamingException;
 import javax.script.ScriptEngine;
@@ -258,10 +260,10 @@ public class JPokerServer extends UnicastRemoteObject implements JPokerInterface
     }
 
     @Override
-    public String getAnswer(JPokerUserTransferObject user, String answer) throws RemoteException, ScriptException {
+    public String getAnswer(JPokerUserTransferObject user, String answer) throws RemoteException, ScriptException, JMSException {
         JPokerRoom room = roomManager.findRoomByUsername(user.getName());
         Integer[] cards = room.getCardNumbers();
-        String tmp = answer.replace("J", "11").replace("Q", "12").replace("K", "13");
+        String tmp = answer.replace("A", "1").replace("J", "11").replace("Q", "12").replace("K", "13");
 
         System.out.println(tmp);
         boolean isValid = checkValidity(tmp, cards);
@@ -274,6 +276,13 @@ public class JPokerServer extends UnicastRemoteObject implements JPokerInterface
             return "?";
         }
         // TODO: If evaluation == 24 then update db and send game over message
+        if(Integer.parseInt(parsedAnswer) == 24){
+            System.out.println("Sent winning game message");
+            roomManager.endGame(room);
+            GameOverMessage gameOverMessage = new GameOverMessage(room.getRoomId(), room.getPlayers(), user, answer);
+            Message message = jmsHelper.createMessage(gameOverMessage);
+            jmsHelper.broadcastMessage(message);
+        }
         return parsedAnswer;
     }
 

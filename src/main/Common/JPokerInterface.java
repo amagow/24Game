@@ -1,5 +1,7 @@
 package Common;
 
+import jakarta.jms.JMSException;
+
 import javax.script.ScriptException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
@@ -14,5 +16,5 @@ public interface JPokerInterface extends Remote {
 
     JPokerUserTransferObject getUser(String name) throws RemoteException;
 
-    String getAnswer(JPokerUserTransferObject user, String answer) throws RemoteException, ScriptException;
+    String getAnswer(JPokerUserTransferObject user, String answer) throws RemoteException, ScriptException, JMSException;
 }

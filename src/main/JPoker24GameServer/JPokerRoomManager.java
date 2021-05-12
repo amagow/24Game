@@ -93,4 +93,9 @@ public class JPokerRoomManager {
             }
         }
     }
+
+    public void endGame(JPokerRoom removalRoom) {
+        synchronized (rooms) {
+            rooms.removeIf(room -> room.getRoomId() == removalRoom.getRoomId());
+        }}
 }
