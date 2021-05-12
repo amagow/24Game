@@ -69,6 +69,7 @@ class JMSHelperClient extends JMSHelper {
                             Arrays
                                     .stream(gameOverMessage.getPlayers())
                                     .anyMatch(player -> player.getName().equals(gameClient.getUser().getName()))) {
+                        gameClient.setRoomId(-1);
                         PlayGamePanel panel = gameClient.getTabbedPane().getPlayGamePanel();
                         panel.createGameOverPanel(gameOverMessage);
                     }
