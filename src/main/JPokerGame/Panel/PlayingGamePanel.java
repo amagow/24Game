@@ -2,6 +2,7 @@ package JPokerGame.Panel;
 
 import Common.JPokerInterface;
 import Common.JPokerUserTransferObject;
+import jakarta.jms.JMSException;
 
 import javax.script.ScriptException;
 import javax.swing.*;
@@ -113,7 +114,7 @@ public class PlayingGamePanel extends JPanel {
                             "Invalid String", JOptionPane.ERROR_MESSAGE);
                 else
                     result.setText(validatedAnswer);
-            } catch (ScriptException | RemoteException e1) {
+            } catch (ScriptException | RemoteException | JMSException e1) {
                 e1.printStackTrace();
             }
         }

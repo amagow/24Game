@@ -1,6 +1,7 @@
 package JPokerGame.Panel;
 
 import Common.Messages.CardsMessage;
+import Common.Messages.GameOverMessage;
 import JPokerGame.JPokerClient;
 
 import javax.swing.*;
@@ -33,6 +34,12 @@ public class PlayGamePanel extends JPanel {
         PlayingGamePanel panel = new PlayingGamePanel(gameClient.getGameProvider(), message.getUsers(), message.getCards(), gameClient.getUser());
         add("" + stages.GAME_PLAYING, panel);
         setStage(PlayGamePanel.stages.GAME_PLAYING);
+    }
+
+    public void createGameOverPanel(GameOverMessage message) {
+        GameOverPanel panel = new GameOverPanel(this, gameClient, message.getWinner(), message.getWinningFormula());
+        add("" + stages.GAME_OVER, panel);
+        setStage(PlayGamePanel.stages.GAME_OVER);
     }
 
     public enum stages {

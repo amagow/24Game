@@ -3,8 +3,10 @@ package JPokerGame;
 import Common.JMSHelper;
 import Common.JPokerUserTransferObject;
 import Common.Messages.CardsMessage;
+import Common.Messages.GameOverMessage;
 import Common.Messages.RoomIdMessage;
 import Common.Messages.UserMessage;
+import JPokerGame.Panel.GameOverPanel;
 import JPokerGame.Panel.PlayGamePanel;
 import jakarta.jms.*;
 
@@ -47,30 +49,34 @@ class JMSHelperClient extends JMSHelper {
                 if (objectMessage instanceof RoomIdMessage) {
                     RoomIdMessage roomIdMessage = (RoomIdMessage) objectMessage;
 
-                    for (JPokerUserTransferObject u : roomIdMessage.getPlayers())
-                        System.out.println(u.getName());
-
-                    System.out.println(
-                            Arrays
-                                    .stream(roomIdMessage.getPlayers())
-                                    .anyMatch(player -> player.getName().equals(gameClient.getUser().getName()))
-                    );
-
                     if (gameClient.getRoomId() < 0 && gameClient.getUser() != null &&
                             Arrays
                                     .stream(roomIdMessage.getPlayers())
                                     .anyMatch(player -> player.getName().equals(gameClient.getUser().getName()))
                     ) {
                         gameClient.setRoomId(roomIdMessage.getRoomId());
-                        System.out.println(gameClient.getRoomId());
                     }
                 }
                 if (objectMessage instanceof CardsMessage) {
                     CardsMessage cardsMessage = (CardsMessage) objectMessage;
-                    System.out.println(cardsMessage.getRoomId());
                     if (gameClient.getRoomId() == cardsMessage.getRoomId()) {
                         PlayGamePanel panel = gameClient.getTabbedPane().getPlayGamePanel();
                         panel.createPlayingGamePanel(cardsMessage);
+                    }
+                }
+                if (objectMessage instanceof GameOverMessage) {
+                    GameOverMessage gameOverMessage = (GameOverMessage) objectMessage;
+                    System.out.println("Received winning game message");
+                    System.out.println(gameClient.getRoomId() == gameOverMessage.getRoomId() );
+                    System.out.println( Arrays
+                            .stream(gameOverMessage.getPlayers())
+                            .anyMatch(player -> player.getName().equals(gameClient.getUser().getName())));
+                    if (gameClient.getRoomId() == gameOverMessage.getRoomId() &&
+                            Arrays
+                                    .stream(gameOverMessage.getPlayers())
+                                    .anyMatch(player -> player.getName().equals(gameClient.getUser().getName()))) {
+                        PlayGamePanel panel = gameClient.getTabbedPane().getPlayGamePanel();
+                        panel.createGameOverPanel(gameOverMessage);
                     }
                 }
             } catch (JMSException e) {
